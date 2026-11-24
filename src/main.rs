@@ -39,7 +39,12 @@ impl Channel {
 }
 
 fn main() {
-    let username = String::from("OdpMod101");
+    let mut accounts = vec![
+        String::from("OdpMod101"),
+        String::from("GoofyAlt"),
+    ];
+    let mut current_acc = 0;
+
     let mut channels = vec![
         Channel::new("general"),
         Channel::new("goofy-zone"),
@@ -47,12 +52,12 @@ fn main() {
     let mut current_channel = 0;
 
     println!("=== DISCEL 0.1 (Project Phoenix Killer) ===");
-    println!("Komendy: /channel <nazwa> | /list | /quit");
+    println!("Komendy: /channel <nazwa> | /list | /switch <nick> | /accounts | /quit");
 
     loop {
         channels[current_channel].show_history();
 
-        print!("{} (#{}) > ", username, channels[current_channel].name);
+        print!("{} (#{}) > ", accounts[current_acc], channels[current_channel].name);
         io::stdout().flush().unwrap();
 
         let mut input = String::new();
@@ -71,6 +76,22 @@ fn main() {
             for (i, ch) in channels.iter().enumerate() {
                 println!("{}. #{}", i + 1, ch.name);
             }
+        } else if input == "/accounts" {
+            println!("Zapisane konta:");
+            for (i, acc) in accounts.iter().enumerate() {
+                let active = if i == current_acc { " (aktywne)" } else { "" };
+                println!("{}. {}{}", i + 1, acc, active);
+            }
+        } else if let Some(acc_name) = input.strip_prefix("/switch ") {
+            let acc_name = acc_name.trim();
+            if let Some(pos) = accounts.iter().position(|a| a == acc_name) {
+                current_acc = pos;
+                println!("Przełączono na konto: {}", acc_name);
+            } else {
+                accounts.push(acc_name.to_string());
+                current_acc = accounts.len() - 1;
+                println!("Dodano i przełączono na nowe konto: {}", acc_name);
+            }
         } else if let Some(new_name) = input.strip_prefix("/channel ") {
             let new_name = new_name.trim();
             if let Some(pos) = channels.iter().position(|c| c.name == new_name) {
@@ -81,7 +102,7 @@ fn main() {
                 println!("Utworzono nowy kanał #{}!", new_name);
             }
         } else {
-            channels[current_channel].send(&username, input);
+            channels[current_channel].send(&accounts[current_acc], input);
         }
     }
 }
