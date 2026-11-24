@@ -1,12 +1,10 @@
 use std::io::{self, Write};
 
-// 1. Struktura pojedynczej wiadomości
 struct Message {
     author: String,
     content: String,
 }
 
-// 2. Struktura kanału tekstowego
 struct Channel {
     name: String,
     messages: Vec<Message>,
@@ -54,11 +52,9 @@ fn main() {
     loop {
         channels[current_channel].show_history();
 
-        // Wyświetlenie zachęty do wpisania tekstu
         print!("{} (#{}) > ", username, channels[current_channel].name);
         io::stdout().flush().unwrap();
 
-        // Odczyt tego, co wpiszesz w konsoli
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
         let input = input.trim();
@@ -67,7 +63,6 @@ fn main() {
             continue;
         }
 
-        // Obsługa komend
         if input == "/quit" {
             println!("Zamykanie Discelda...");
             break;
@@ -78,7 +73,6 @@ fn main() {
             }
         } else if let Some(new_name) = input.strip_prefix("/channel ") {
             let new_name = new_name.trim();
-            // Szukamy, czy kanał już istnieje, jeśli nie - tworzymy go
             if let Some(pos) = channels.iter().position(|c| c.name == new_name) {
                 current_channel = pos;
             } else {
@@ -87,8 +81,7 @@ fn main() {
                 println!("Utworzono nowy kanał #{}!", new_name);
             }
         } else {
-            // Zwykła wiadomość
             channels[current_channel].send(&username, input);
         }
     }
-            }
+}
