@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disceld (WASM)</title>
+    <style>
+        body { margin: 0; font-family: sans-serif; background: #1e1f22; color: #f2f3f5; display: flex; height: 100vh; }
+        .sidebar { width: 220px; background: #2b2d31; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; }
+        .brand { color: #ff2a2a; font-weight: bold; font-size: 20px; margin-bottom: 15px; }
+        .section-title { font-size: 12px; color: #949ba4; text-transform: uppercase; margin: 10px 0 5px; }
+        .item { display: block; width: 100%; text-align: left; background: none; border: none; color: #949ba4; padding: 8px; border-radius: 5px; cursor: pointer; margin-bottom: 2px; }
+        .item:hover, .item.active { background: #404249; color: #fff; }
+        .add-box { display: flex; gap: 4px; margin-top: 5px; }
+        .add-box input { width: 100%; background: #1e1f22; border: none; color: #fff; padding: 6px; border-radius: 4px; }
+        .add-box button { background: #ff2a2a; border: none; color: #fff; border-radius: 4px; cursor: pointer; padding: 0 10px; font-weight: bold; }
+        .chat { flex: 1; display: flex; flex-direction: column; background: #313338; }
+        .header { padding: 15px; border-bottom: 1px solid #1e1f22; font-weight: bold; }
+        .messages { flex: 1; padding: 15px; overflow-y: auto; }
+        .msg { margin-bottom: 10px; }
+        .author { color: #ff4d4d; font-weight: bold; }
+        .empty { color: #949ba4; font-style: italic; }
+        .input-bar { padding: 15px; display: flex; gap: 10px; }
+        .input-bar input { flex: 1; background: #383a40; border: none; color: #fff; padding: 12px; border-radius: 8px; }
+        .input-bar button { background: #ff2a2a; border: none; color: #fff; padding: 0 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div>
+            <div class="brand">DISCEL</div>
+            <div class="section-title">Kanały</div>
+            <div id="channels"></div>
+            <div class="add-box">
+                <input id="newChannel" placeholder="Nowy kanał...">
+                <button onclick="createChannel()">+</button>
+            </div>
+        </div>
+        <div>
+            <div class="section-title">Account Switcher</div>
+            <div id="accounts"></div>
+            <div class="add-box">
+                <input id="newAccount" placeholder="Dodaj konto...">
+                <button onclick="createAccount()">+</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat">
+        <div class="header" id="header"># general</div>
+        <div class="messages" id="messages"></div>
+        <div class="input-bar">
+            <input id="msgInput" placeholder="Napisz wiadomość..." onkeydown="if(event.key==='Enter') sendMsg()">
+            <button onclick="sendMsg()">Wyślij</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import init, { DisceldApp } from './pkg/disceld.js';
+
+        let app;
+
+        async function run() {
+            await init();
+            app = new DisceldApp();
+            updateUI();
+        }
+
+        window.updateUI = () => {
+            document.getElementById('header').innerText = `# ${app.get_current_channel()}  |  Zalogowano jako: @${app.get_current_account()}`;
+            document.getElementById('channels').innerHTML = app.render_channels_html();
+            document.getElementById('accounts').innerHTML = app.render_accounts_html();
+            document.getElementById('messages').innerHTML = app.render_messages_html();
+        };
+
+        window.sendMsg = () => {
+            const input = document.getElementById('msgInput');
+            app.send_message(input.value);
+            input.value = '';
+            updateUI();
+        };
+
+        window.selectChannel = (name) => {
+            app.switch_channel(name);
+            updateUI();
+        };
+
+        window.createChannel = () => {
+            const input = document.getElementById('newChannel');
+            app.switch_channel(input.value);
+            input.value = '';
+            updateUI();
+        };
+
+        window.selectAccount = (name) => {
+            app.switch_account(name);
+            updateUI();
+        };
+
+        window.createAccount = () => {
+            const input = document.getElementById('newAccount');
+            app.switch_account(input.value);
+            input.value = '';
+            updateUI();
+        };
+
+        run();
+    </script>
+</body>
+</html>
